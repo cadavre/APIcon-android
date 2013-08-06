@@ -26,6 +26,7 @@ public class TestActivity extends Activity {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setServer(APIClient.API_URL)
                 .setRequestInterceptor(new OAuth2Interceptor())
+                .setClient(new TestClient())
                 .setErrorHandler(new ApiErrorHandler())
                 .setLog(new Logger())
                 .setDebug(true)

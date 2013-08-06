@@ -2,10 +2,7 @@ package com.cadavre.APIcon;
 
 import android.os.Build;
 import retrofit.android.AndroidApacheClient;
-import retrofit.client.Client;
-import retrofit.client.Request;
-import retrofit.client.Response;
-import retrofit.client.UrlConnectionClient;
+import retrofit.client.*;
 
 import java.io.IOException;
 
@@ -19,7 +16,7 @@ public class TestClient implements Client {
     @Override
     public Response execute(Request request) throws IOException {
 
-        Client client = defaultClient();
+        Client client = okClient();
 
         return client.execute(request);
     }
@@ -34,5 +31,10 @@ public class TestClient implements Client {
         }
 
         return client;
+    }
+
+    Client okClient() {
+
+        return new OkClient();
     }
 }
