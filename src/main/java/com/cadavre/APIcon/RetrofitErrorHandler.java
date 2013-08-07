@@ -25,10 +25,19 @@ public class RetrofitErrorHandler implements retrofit.ErrorHandler {
         }
         Logger.i("-- isOAuth2Error: " + isOAuth2Error(error));
 
-        return new Exception(error.getMessage());
+        return error;
     }
 
     /* OAuth2 fun below */
+
+    private boolean isResolvableOAuth2Error(RetrofitError error) {
+
+        if (isOAuth2Error(error)) {
+
+        }
+
+        return false;
+    }
 
     /**
      * Check if RetrofitError is OAuth2 error.
@@ -150,7 +159,9 @@ public class RetrofitErrorHandler implements retrofit.ErrorHandler {
     private class AuthenticationRealm {
 
         private String scheme;
+
         private String realm;
+
         private String error;
 
         AuthenticationRealm(String scheme, String realm, String error) {

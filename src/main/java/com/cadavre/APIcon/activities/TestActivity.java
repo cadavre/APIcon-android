@@ -7,12 +7,13 @@ import android.widget.Button;
 import android.widget.Toast;
 import com.cadavre.APIcon.*;
 import retrofit.Callback;
-import retrofit.ErrorHandler;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class TestActivity extends Activity {
+
+    public static RestAdapter restAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -32,10 +33,10 @@ public class TestActivity extends Activity {
 
     private void callAPITest() {
 
-        RestAdapter restAdapter = new RestAdapter.Builder()
+        restAdapter = new RestAdapter.Builder()
                 .setLog(new Logger())
                 .setDebug(true)
-                .setServer(SonabisService.API_URL)
+                .setServer(SonabisService.BASE_URL)
                 .setClient(new HttpClient())
                 .setRequestInterceptor(new OAuth2Interceptor())
                 .setConverter(new SymfonyGsonConverter())
@@ -43,6 +44,7 @@ public class TestActivity extends Activity {
                 .build();
 
         SonabisService.API api = restAdapter.create(SonabisService.API.class);
+        SonabisService.OAuth2 oauth = restAdapter.create(SonabisService.OAuth2.class);
 
         api.getGame(new Callback<User>() {
 
@@ -55,8 +57,6 @@ public class TestActivity extends Activity {
             @Override
             public void failure(RetrofitError error) {
 
-                ErrorHandler errorHandler = new RetrofitErrorHandler();
-                errorHandler.handleError(error);
                 Toast.makeText(TestActivity.this, "failure", Toast.LENGTH_SHORT).show();
             }
         });
