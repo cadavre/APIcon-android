@@ -10,5 +10,12 @@
         android:layout_height="wrap_content"
         android:text="Hello World, TestActivity"
         />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/button"
+        android:layout_gravity="center"/>
 </LinearLayout>
 
