@@ -51,13 +51,13 @@ public final class OAuth2Helper {
     }
 
     /**
-     * Get or create if not exist a SharedPreferences by filename.
+     * Get (or create if not exist) a default SharedPreferences for OAuth2 data.
      *
      * @param context
      *
      * @return SharedPreferences
      */
-    public static SharedPreferences getSharedPrefs(Context context) {
+    public static SharedPreferences getDefaultSharedPrefs(Context context) {
 
         return context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
     }
@@ -100,14 +100,12 @@ public final class OAuth2Helper {
      * @param accessToken
      * @param refreshToken
      * @param accessTokenLifetime
-     * @param refreshTokenLifetime
      */
-    public void setReceivedData(String accessToken, String refreshToken, int accessTokenLifetime, int refreshTokenLifetime) {
+    public void setReceivedData(String accessToken, String refreshToken, int accessTokenLifetime) {
 
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         setAccessTokenLifetime(accessTokenLifetime);
-        setRefreshTokenLifetime(refreshTokenLifetime);
     }
 
     /**
@@ -128,6 +126,20 @@ public final class OAuth2Helper {
     public boolean isRefreshTokenExpired() {
 
         return System.currentTimeMillis() < refreshTokenExpiration;
+    }
+
+    /**
+     * Check if OAuth2 data is sufficient to call basic OAuth2 request.
+     *
+     * @return true if there is sufficient data to call basic OAuth2 request
+     */
+    public boolean isOAuth2DataAvailable() {
+
+        if (accessToken != null || !accessToken.equals("")) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

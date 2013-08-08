@@ -1,7 +1,6 @@
 package com.cadavre.APIcon;
 
 import android.content.Context;
-import com.octo.android.robospice.SpiceManager;
 
 /**
  * APIcon class, takes care of initialization and managing whole API system.
@@ -10,10 +9,9 @@ import com.octo.android.robospice.SpiceManager;
  */
 public class APIcon {
 
-    private static APIcon ourInstance;
-
-    private SpiceManager spiceManager = new SpiceManager(ApiSpiceService.class);
     private OAuth2Helper oAuth2Helper;
+
+    private static APIcon ourInstance;
 
     /**
      * Private constructor to use with singleton pattern.
@@ -24,8 +22,8 @@ public class APIcon {
      */
     private APIcon(String appId, String appSecret, Context context) {
 
-        this.spiceManager.start(context);
         this.oAuth2Helper = new OAuth2Helper(appId, appSecret);
+        this.oAuth2Helper.getFromPrefs(OAuth2Helper.getDefaultSharedPrefs(context));
     }
 
     /**
@@ -55,16 +53,6 @@ public class APIcon {
     public static APIcon getInstance() {
 
         return ourInstance;
-    }
-
-    /**
-     * Get SpiceManager with binded service.
-     *
-     * @return APIcon
-     */
-    public SpiceManager getSpiceManager() {
-
-        return spiceManager;
     }
 
     /**

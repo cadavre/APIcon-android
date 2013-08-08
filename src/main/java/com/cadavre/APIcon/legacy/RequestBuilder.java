@@ -13,7 +13,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-final class RequestBuilder implements RequestInterceptor.RequestFacade {
+public final class RequestBuilder implements RequestInterceptor.RequestFacade {
 
     private final Converter converter;
     private final List<Header> headers;
