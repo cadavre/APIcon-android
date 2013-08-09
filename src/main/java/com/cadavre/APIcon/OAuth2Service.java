@@ -13,27 +13,27 @@ import retrofit.http.Query;
  */
 interface OAuth2Service {
 
-    @GET("/token?grant_type=password")
+    @GET("?grant_type=password")
     void getTokensWithUserCredentials(
-            @Query("client_id") String appId,
-            @Query("client_secret") String appSecret,
-            @Query("username") String username,
-            @Query("password") String password,
-            Callback<OAuth2ResponseData> cb
+        @Query("client_id") String appId,
+        @Query("client_secret") String appSecret,
+        @Query("username") String username,
+        @Query("password") String password,
+        Callback<OAuth2ResponseData> cb
     );
 
-    @GET("/token?grant_type=client_credentials")
+    @GET("?grant_type=client_credentials")
     void getTokensWithClientCredentials(
-            @Query("client_id") String appId,
-            @Query("client_secret") String appSecret,
-            Callback<OAuth2ResponseData> cb
+        @Query("client_id") String appId,
+        @Query("client_secret") String appSecret,
+        Callback<OAuth2ResponseData> cb
     );
 
-    @GET("/token?grant_type=refresh_token")
+    @GET("?grant_type=refresh_token")
     void authorizeWithRefreshToken(
-            @Query("client_id") String appId,
-            @Query("client_secret") String appSecret,
-            @Query("refresh_token") String refreshToken,
-            Callback<OAuth2ResponseData> cb
+        @Query("client_id") String appId,
+        @Query("client_secret") String appSecret,
+        @Query("refresh_token") String refreshToken,
+        Callback<OAuth2ResponseData> cb
     );
 }

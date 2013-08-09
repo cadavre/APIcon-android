@@ -35,6 +35,19 @@ final class Logger implements RestAdapter.Log {
     }
 
     /**
+     * Log debug message.
+     * Notice: debug messages are NOT logged if BuildConfig.DEBUG is false.
+     *
+     * @param message
+     */
+    public static void d(String message) {
+
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, message);
+        }
+    }
+
+    /**
      * Log warning message.
      *
      * @param message
@@ -63,5 +76,26 @@ final class Logger implements RestAdapter.Log {
     public static void e(String message, Throwable e) {
 
         Log.e(TAG, message, e);
+    }
+
+    /**
+     * Log type, class occurrence and line number of thrown exception that don't need to be catched.
+     *
+     * @param e
+     */
+    public static void dummyException(Throwable e) {
+
+        StackTraceElement trace = Thread.currentThread().getStackTrace()[3];
+        Log.e(TAG, "Dummy exception " + e.getClass().getCanonicalName() + " in " + trace.getClassName() + " at " +
+            trace.getFileName());
+    }
+
+    /**
+     * Log class occurrence and line number of error that don't need to be handled.
+     */
+    public static void dummyError() {
+
+        StackTraceElement trace = Thread.currentThread().getStackTrace()[3];
+        Log.e(TAG, "Dummy error in " + trace.getClassName() + " at " + trace.getFileName());
     }
 }

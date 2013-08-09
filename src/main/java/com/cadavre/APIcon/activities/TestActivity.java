@@ -2,6 +2,7 @@ package com.cadavre.APIcon.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -23,12 +24,13 @@ public class TestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        ApiServer server = new ApiServer("http://api.sonabis.com", null); // create a server with authorization or no
+        ApiServer server = new ApiServer("http://api.sonabis.com"); // create a server with authorization or no
         server.addServiceInterface(SonabisService.class); // add your interfaces
         APIcon.initialize(server); // initialize APIcon
 
         Button btn = (Button) findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
 
@@ -40,7 +42,7 @@ public class TestActivity extends Activity {
     private void callAPITest() {
 
         SonabisService api = APIcon.getInstance().getService(SonabisService.class);
-        api.getGame(new Callback<User>() {
+        api.getScore(1, "me", new Callback<User>() {
 
             @Override
             public void success(User user, Response response) {
@@ -51,6 +53,7 @@ public class TestActivity extends Activity {
             @Override
             public void failure(RetrofitError error) {
 
+                Log.e("APIcon", "ERROR", error);
                 Toast.makeText(TestActivity.this, "failure", Toast.LENGTH_SHORT).show();
             }
         });

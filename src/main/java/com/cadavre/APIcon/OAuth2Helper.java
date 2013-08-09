@@ -37,14 +37,14 @@ final class OAuth2Helper {
     public static boolean isOAuthError(String errorMessage) {
 
         String[] oauthErrors = {
-                // fetching access token
-                "invalid_client",           // wrong client_id/client_secret
-                "invalid_request",          // params missing
-                "invalid_grant",            // wrong refresh_token
-                "unsupported_grant_type",   // wrong grant_type
-                // secured resources access
-                "invalid_grant",            // wrong access_token, expired...
-                "access_denied"             // user with weak ROLE
+            // fetching access token
+            "invalid_client",           // wrong client_id/client_secret
+            "invalid_request",          // params missing
+            "invalid_grant",            // wrong refresh_token
+            "unsupported_grant_type",   // wrong grant_type
+            // secured resources access
+            "invalid_grant",            // wrong access_token, expired...
+            "access_denied"             // user with weak ROLE
         };
 
         return Arrays.asList(oauthErrors).contains(errorMessage);
@@ -73,10 +73,10 @@ final class OAuth2Helper {
 
         SharedPreferences.Editor editor = preferences.edit();
         editor
-                .putString(ACCESS_TOKEN_FIELD, accessToken)
-                .putString(REFRESH_TOKEN_FIELD, refreshToken)
-                .putLong(ACCESS_TOKEN_EXPIRATION_FIELD, accessTokenExpiration)
-                .putLong(REFRESH_TOKEN_EXPIRATION_FIELD, refreshTokenExpiration);
+            .putString(ACCESS_TOKEN_FIELD, accessToken)
+            .putString(REFRESH_TOKEN_FIELD, refreshToken)
+            .putLong(ACCESS_TOKEN_EXPIRATION_FIELD, accessTokenExpiration)
+            .putLong(REFRESH_TOKEN_EXPIRATION_FIELD, refreshTokenExpiration);
 
         return editor.commit();
     }

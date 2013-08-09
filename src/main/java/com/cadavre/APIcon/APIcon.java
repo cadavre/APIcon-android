@@ -6,7 +6,7 @@ package com.cadavre.APIcon;
  * @author Seweryn Zeman
  * @version 1
  */
-public class APIcon {
+public final class APIcon {
 
     private static APIcon ourInstance;
     private ApiServer server;
@@ -33,7 +33,6 @@ public class APIcon {
         if (ourInstance == null) {
 
             ourInstance = new APIcon(server);
-            // todo create @Authorization map
         }
 
         return ourInstance;
@@ -60,5 +59,10 @@ public class APIcon {
     public <T> T getService(Class<T> serviceInterface) {
 
         return server.getService(serviceInterface);
+    }
+
+    /* package */ ApiServer getServer() {
+
+        return server;
     }
 }

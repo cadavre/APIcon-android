@@ -7,40 +7,40 @@ import android.content.Context;
  *
  * @author Seweryn Zeman
  * @version 1
- * todo take care of this shitty initialization()
+ *          todo take care of this shitty initialization()
  */
 public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
 
     private OAuth2Service authService;
-
     private OAuth2Helper helper;
 
-    private String authEndpoint;
-    private String tokenEndpoint;
+    private String authorizationEndpoint;
 
-    public OAuth2ServerAuthorization(Context context, String appId, String appSecret) {
+    public OAuth2ServerAuthorization(Context context, String authorizationEndpoint, String appId, String appSecret) {
+
+        this.authorizationEndpoint = authorizationEndpoint;
 
         // initialize OAuth2 helper
         helper = new OAuth2Helper(appId, appSecret);
         helper.getFromPrefs(OAuth2Helper.getDefaultSharedPrefs(context));
     }
 
-    /**
-     * Set authorization endpoints. Auth endpoint may refer to null.
-     *
-     * @param tokenEndpoint
-     * @param authEndpoint
-     */
-    public void setEndpoints(String tokenEndpoint, String authEndpoint) {
-
-        this.authEndpoint = authEndpoint;
-        this.tokenEndpoint = tokenEndpoint;
-    }
-
     @Override
     public void initialize(String baseUrl) {
 
-        authService = new ApiServer(baseUrl).getService(OAuth2Service.class);
+        authService = new ApiServer(baseUrl + authorizationEndpoint).getService(OAuth2Service.class);
+    }
+
+    @Override
+    public boolean canTryDirectRequest() {
+
+        if (!helper.isOAuth2DataAvailable() || helper.isRefreshTokenExpired()) {
+            return false;
+        } else if (helper.isAccessTokenExpired()) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -50,15 +50,9 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
     }
 
     @Override
-    public String getAuthEndpoint() {
+    public String getAuthorizationEndpoint() {
 
-        return authEndpoint;
-    }
-
-    @Override
-    public String getTokenEndpoint() {
-
-        return tokenEndpoint;
+        return authorizationEndpoint;
     }
 
     @Override

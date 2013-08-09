@@ -1,6 +1,7 @@
 package com.cadavre.APIcon;
 
 import android.os.Build;
+import com.cadavre.APIcon.exception.AuthorizationRequiredException;
 import com.squareup.okhttp.OkHttpClient;
 import retrofit.android.AndroidApacheClient;
 import retrofit.client.*;
@@ -8,6 +9,8 @@ import retrofit.client.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collection;
+import java.util.regex.Pattern;
 
 /**
  * Very basic RestHttpClient implementation to execute Request into Response.
@@ -32,41 +35,81 @@ class RestHttpClient implements Client {
     @Override
     public Response execute(final Request request) throws IOException {
 
-        RequestRebuilder rebuilder = new RequestRebuilder(request);
-        URL url = rebuilder.parseUrl();
+        RequestRebuilder rebuilder = null;
+        ApiServerAuthorization apiAuthorization = null;
+        boolean needAuthorization = false;
 
-        // todo DO THIS MORE UNIVERSAL
+        // get endpoints that need authorization...
+        Collection<Pattern> authEndpointPatterns = APIcon.getInstance().
+            getServer().getEndpointsRequiringAuthorization().values();
+        // ...and if there are some - check for authorization requirement
+        if (!authEndpointPatterns.isEmpty()) {
+            Logger.d("Found endpoints with authorization required");
 
-        // check for OAuth2 availability and set proper headers
-        /*if (!oAuth2Helper.isOAuth2DataAvailable() || oAuth2Helper.isRefreshTokenExpired()) {
-            //request.addHeader("X-OAuth2-Helper", "Reauthorize");
-        } else if (oAuth2Helper.isAccessTokenExpired()) {
-            //request.addHeader("X-OAuth2-Helper", "Refresh");
-        } else {
-            // todo check if endpoint needs authorization
-            //request.addHeader("Authorization", "Bearer " + oAuth2Helper.getAccessToken());
-        }*/
+            // prepare copy of Request and parse it's url
+            rebuilder = new RequestRebuilder(request);
+            URL url = rebuilder.parseUrl();
+            /* URL: getProtocol()://getHost()getPath()?getQuery() */
 
-        /**
-         * protocol :// host path ? query
-         * ==
-         * protocol :// host filename
-         */
+            // check if current endpoint needs authorization
+            for (Pattern pattern : authEndpointPatterns) {
+                if (pattern.matcher(url.getPath()).find()) {
+                    Logger.d("Url " + request.getUrl() + " matched auth pattern " + pattern.pattern());
+                    needAuthorization = true;
+                    break;
+                }
+            }
 
-        /*
-        reason = request.getHeaders().contain("X-OAuth2-Unauthorized")
-        if (reason == "Wstępna autoryzacja wymagana") {
-            oauth.authorize();
-            isOAuth2InProgress = true;
-        } else if (reason == "Pobierz access_token z refresh_token'a") {
-            oauth.getAccessTokenFromRefreshToken();
-            isOAuth2InProgress = true;
+            // since we know we need authorization - we get ApiServerAuthorization that comes with ApiServer
+            if (needAuthorization) {
+                apiAuthorization = APIcon.getInstance().getServer().getAuthorization();
+            }
         }
 
-        // tu jeszcze wstawić Bearer'a w headery i usunąć "X-OAuth2-401"
-         */
+        Request readyRequest;
+        Response response;
 
-        Response response = client.execute(request);
+        // if we don't need authorization - go on - execute request...
+        if (!needAuthorization) {
+            readyRequest = request;
+            response = client.execute(readyRequest);
+        }
+        // ...but if we need authorization and we don't have tools to authorize - don't even bother
+        else if (apiAuthorization == null) {
+            throw new AuthorizationRequiredException();
+        }
+        // now let's check if local data tells us we can execute request with our current auth params
+        // if yes - execute a request with new authorization headers
+        else if (needAuthorization) {
+            if (apiAuthorization.canTryDirectRequest()) { // TODO if (!apiAuthorization.canTryDirectRequest())
+
+                rebuilder.setHeader(new Header( // TODO przenieść odtąd do końca ten kod
+                    apiAuthorization.getHeaderName(),
+                    apiAuthorization.getHeaderValue())
+                );
+                readyRequest = rebuilder.rebuild();
+                response = client.execute(readyRequest);
+            }
+            // but if local data tells there is no way for successful authorization - handle it
+            else {
+                // TODO check why we cannot execute and "tell what to do!" if you are so sure ApiAuth!
+                /**
+                 * Metoda w interfejsie. Dla OAuth2 będą case'y:
+                 * 1a. !isOAuth2DataAvailable() - w ogóle nie zautoryzowano
+                 * 1b. isRefreshTokenExpired() - wszystkie tokeny wymarły
+                 * 2 . isAccessTokenExpired() - access_token umarł, na szczęście działa refresh_token
+                 *
+                 * Ta metoda niech zwróci boola - jeśli się udało true, jeśli nie false.
+                 * true {
+                 *     zabawa z rebuilderem - dokładnie jak wyżej
+                 * }
+                 * false {
+                 *     throw new Exception
+                 * }
+                 */
+            }
+        }
+
         // tutaj sprawdzić czy Response nie ma wybrakowanego albo starego OAuth2,
         // jeśli tak zrobić request w międzyczasie i wysłać request jeszcze raz
         // otrzymując nowego Bearera, które można użyć w ponownym wykonaniu execute()
@@ -131,7 +174,7 @@ class RestHttpClient implements Client {
             Class.forName("com.squareup.okhttp.OkHttpClient");
             client = okClient();
         } catch (ClassNotFoundException e) {
-            Logger.i("No okHttpClient found, using Android default implementation");
+            Logger.d("No OkHttpClient found, using Android default implementation");
             client = defaultAndroidClient();
         }
 

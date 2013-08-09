@@ -2,10 +2,12 @@ package com.cadavre.APIcon;
 
 import retrofit.RestAdapter;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * APIcon main representation of particular server and it's authorization.
@@ -22,37 +24,31 @@ public final class ApiServer {
     private List<Class<?>> serviceInterfaces = new ArrayList<Class<?>>();
     private Map<Class<?>, Object> interfaceToServiceMap = new HashMap<Class<?>, Object>();
 
-    /**
-     * Simple default constructor.
-     *
-     * @param baseUrl
-     */
-    public ApiServer(String baseUrl) {
-
-        this(baseUrl, null);
-    }
+    private HashMap<Method, Pattern> endpointsRequiringAuthorization = new HashMap<Method, Pattern>();
 
     /**
      * Default constructor.
      *
      * @param baseUrl
-     * @param authorization
      */
-    public ApiServer(String baseUrl, ApiServerAuthorization authorization) {
+    public ApiServer(String baseUrl) {
 
         this.baseUrl = baseUrl;
         this.restAdapter = new RestAdapter.Builder()
-                .setLog(new Logger())
-                .setDebug(BuildConfig.DEBUG)
-                .setServer(baseUrl)
-                .setClient(new RestHttpClient())
-                .setRequestInterceptor(new RestStatelessInterceptor())
-                .setConverter(new RestSymfonyGsonConverter())
-                        // .setErrorHandler(new RestErrorHandler()) works only with synchronous Requests
-                .build();
+            .setLog(new Logger())
+            .setDebug(BuildConfig.DEBUG)
+            .setServer(baseUrl)
+            .setClient(new RestHttpClient())
+            .setRequestInterceptor(new RestStatelessInterceptor())
+            .setConverter(new RestSymfonyGsonConverter())
+                // .setErrorHandler(new RestErrorHandler()) works only with synchronous Requests
+            .build();
+    }
+
+    public void setAuthorization(ApiServerAuthorization authorization) {
 
         if (authorization != null) {
-            authorization.initialize(baseUrl); // todo see{OAuth2ServerAuthorization}
+            authorization.initialize(baseUrl);
             this.authorization = authorization;
         }
     }
@@ -76,6 +72,10 @@ public final class ApiServer {
      */
     public ApiServer addServiceInterface(Class<?> serviceInterface) {
 
+        // parse custom annotations
+        endpointsRequiringAuthorization = AnnotationUtils.parseServiceInterfaceAuthorization(serviceInterface);
+
+        // add service to the list
         serviceInterfaces.add(serviceInterface);
 
         return this;
@@ -87,7 +87,7 @@ public final class ApiServer {
      *
      * @return ApiServerAuthorization
      */
-    ApiServerAuthorization getAuthorization() {
+    /* package */ ApiServerAuthorization getAuthorization() {
 
         return this.authorization;
     }
@@ -97,9 +97,19 @@ public final class ApiServer {
      *
      * @return List
      */
-    List<Class<?>> getServiceInterfaces() {
+    /* package */ List<Class<?>> getServiceInterfaces() {
 
         return serviceInterfaces;
+    }
+
+    /**
+     * Hash map of methods and urls requiring authorization.
+     *
+     * @return HashMap with methods and urls
+     */
+    /* package */ HashMap<Method, Pattern> getEndpointsRequiringAuthorization() {
+
+        return endpointsRequiringAuthorization;
     }
 
     /**
@@ -110,7 +120,7 @@ public final class ApiServer {
      *
      * @return service
      */
-    <T> T getService(Class<T> serviceInterface) {
+    /* package */ <T> T getService(Class<T> serviceInterface) {
 
         T service = (T) interfaceToServiceMap.get(serviceInterface);
         if (service == null) {
@@ -120,5 +130,4 @@ public final class ApiServer {
 
         return service;
     }
-
 }
