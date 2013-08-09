@@ -11,9 +11,9 @@ import retrofit.converter.GsonConverter;
  * @author Seweryn Zeman
  * @version 1
  */
-public final class SymfonyGsonConverter extends GsonConverter {
+final class RestSymfonyGsonConverter extends GsonConverter {
 
-    public SymfonyGsonConverter() {
+    public RestSymfonyGsonConverter() {
 
         super(createGson());
     }

@@ -9,7 +9,7 @@ import retrofit.RestAdapter;
  * @author Seweryn Zeman
  * @version 1
  */
-public final class Logger implements RestAdapter.Log {
+final class Logger implements RestAdapter.Log {
 
     static final String TAG = "APIcon";
 

@@ -11,7 +11,7 @@ import java.util.Arrays;
  * @author Seweryn Zeman
  * @version 1
  */
-public final class OAuth2Helper {
+final class OAuth2Helper {
 
     public static final String SHARED_PREFS_NAME = "authorization_data";
 

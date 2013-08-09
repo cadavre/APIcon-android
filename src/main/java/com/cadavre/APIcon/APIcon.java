@@ -1,45 +1,39 @@
 package com.cadavre.APIcon;
 
-import android.content.Context;
-
 /**
  * APIcon class, takes care of initialization and managing whole API system.
  *
  * @author Seweryn Zeman
+ * @version 1
  */
 public class APIcon {
 
-    private OAuth2Helper oAuth2Helper;
-
     private static APIcon ourInstance;
+    private ApiServer server;
 
     /**
      * Private constructor to use with singleton pattern.
      *
-     * @param appId
-     * @param appSecret
-     * @param context
+     * @param server
      */
-    private APIcon(String appId, String appSecret, Context context) {
+    private APIcon(ApiServer server) {
 
-        this.oAuth2Helper = new OAuth2Helper(appId, appSecret);
-        this.oAuth2Helper.getFromPrefs(OAuth2Helper.getDefaultSharedPrefs(context));
+        this.server = server;
     }
 
     /**
      * Initialize APIcon system.
      *
-     * @param appId
-     * @param appSecret
-     * @param context
+     * @param server
      *
      * @return APIcon
      */
-    public static APIcon initialize(String appId, String appSecret, Context context) {
+    public static APIcon initialize(ApiServer server) {
 
         if (ourInstance == null) {
 
-            ourInstance = new APIcon(appId, appSecret, context);
+            ourInstance = new APIcon(server);
+            // todo create @Authorization map
         }
 
         return ourInstance;
@@ -56,12 +50,15 @@ public class APIcon {
     }
 
     /**
-     * Get OAuth2Helper.
+     * Get API service.
      *
-     * @return OAuth2Helper
+     * @param serviceInterface
+     * @param <T>
+     *
+     * @return service
      */
-    public OAuth2Helper getOAuth2Helper() {
+    public <T> T getService(Class<T> serviceInterface) {
 
-        return oAuth2Helper;
+        return server.getService(serviceInterface);
     }
 }

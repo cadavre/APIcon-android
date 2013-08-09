@@ -1,40 +1,57 @@
 package com.cadavre.APIcon;
 
 import android.os.Build;
-import com.cadavre.APIcon.activities.SonabisService;
-import com.cadavre.APIcon.activities.TestActivity;
 import com.squareup.okhttp.OkHttpClient;
-import retrofit.Callback;
-import retrofit.RetrofitError;
 import retrofit.android.AndroidApacheClient;
 import retrofit.client.*;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Very basic HttpClient implementation to execute Request into Response.
+ * Very basic RestHttpClient implementation to execute Request into Response.
  * Uses best available Client existing in project.
  *
  * @author Seweryn Zeman
  * @version alpha
  */
-public class HttpClient implements Client {
+class RestHttpClient implements Client {
 
     private Client client;
+    //private OAuth2Helper oAuth2Helper;
 
     private static boolean isOAuth2InProgress = false;
 
-    public HttpClient() {
+    public RestHttpClient() {
 
         client = getBestAvailableClient();
+        //this.oAuth2Helper = APIcon.getInstance().getOAuth2Helper();
     }
 
     @Override
     public Response execute(final Request request) throws IOException {
+
+        RequestRebuilder rebuilder = new RequestRebuilder(request);
+        URL url = rebuilder.parseUrl();
+
+        // todo DO THIS MORE UNIVERSAL
+
+        // check for OAuth2 availability and set proper headers
+        /*if (!oAuth2Helper.isOAuth2DataAvailable() || oAuth2Helper.isRefreshTokenExpired()) {
+            //request.addHeader("X-OAuth2-Helper", "Reauthorize");
+        } else if (oAuth2Helper.isAccessTokenExpired()) {
+            //request.addHeader("X-OAuth2-Helper", "Refresh");
+        } else {
+            // todo check if endpoint needs authorization
+            //request.addHeader("Authorization", "Bearer " + oAuth2Helper.getAccessToken());
+        }*/
+
+        /**
+         * protocol :// host path ? query
+         * ==
+         * protocol :// host filename
+         */
 
         /*
         reason = request.getHeaders().contain("X-OAuth2-Unauthorized")
@@ -55,18 +72,17 @@ public class HttpClient implements Client {
         // otrzymując nowego Bearera, które można użyć w ponownym wykonaniu execute()
 
         // if (isOAuth2Error && !isOAuth2InProgress) {
-        if (response.getStatus() == 401) {
+        /*if (response.getStatus() == 401) {
             SonabisService.OAuth2 oauth = TestActivity.restAdapter.create(SonabisService.OAuth2.class);
-            oauth.getTokenWithUserCredentials(
+            oauth.getTokensWithUserCredentials(
                     "2_2vg6yqabu7ggwc4oscgswcwwogw0cc08w08k080g0koggsosgg",
                     "1kybihzq182s0c4kc0c8ko44wg4o0w4ocg8cosso0o40gs4cgo",
-                    "password",
                     "abba",
                     "abba",
-                    new Callback<OAuth2Data>() {
+                    new Callback<OAuth2ResponseData>() {
 
                         @Override
-                        public void success(OAuth2Data data, Response response) {
+                        public void success(OAuth2ResponseData data, Response response) {
 
                             // podmiana headera z autoryzacją
                             List<Header> newHeaders = new ArrayList<Header>();
@@ -95,7 +111,7 @@ public class HttpClient implements Client {
                         }
                     });
 
-        }
+        }*/
 
         return response;
     }
@@ -149,7 +165,20 @@ public class HttpClient implements Client {
         return new CustomOkClient();
     }
 
+    /**
+     * Custom OkClient implementation that allows to change timeouts.
+     */
     private class CustomOkClient extends OkClient {
+
+        /**
+         * Timeout for associating network connection. In seconds.
+         */
+        private static final int CONNECTION_TIMEOUT = 5;
+
+        /**
+         * Timeout for reading data from established connection. In seconds.
+         */
+        private static final int READ_TIMEOUT = 10;
 
         private final OkHttpClient client;
 
@@ -162,8 +191,8 @@ public class HttpClient implements Client {
         protected HttpURLConnection openConnection(Request request) throws IOException {
 
             HttpURLConnection connection = client.open(new URL(request.getUrl()));
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(CONNECTION_TIMEOUT * 1000);
+            connection.setReadTimeout(READ_TIMEOUT * 1000);
             return connection;
         }
     }

@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-import com.cadavre.APIcon.*;
+import com.cadavre.APIcon.APIcon;
+import com.cadavre.APIcon.ApiServer;
+import com.cadavre.APIcon.R;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -21,6 +23,10 @@ public class TestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        ApiServer server = new ApiServer("http://api.sonabis.com", null); // create a server with authorization or no
+        server.addServiceInterface(SonabisService.class); // add your interfaces
+        APIcon.initialize(server); // initialize APIcon
+
         Button btn = (Button) findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -33,19 +39,7 @@ public class TestActivity extends Activity {
 
     private void callAPITest() {
 
-        restAdapter = new RestAdapter.Builder()
-                .setLog(new Logger())
-                .setDebug(true)
-                .setServer(SonabisService.BASE_URL)
-                .setClient(new HttpClient())
-                .setRequestInterceptor(new OAuth2Interceptor())
-                .setConverter(new SymfonyGsonConverter())
-                        // .setErrorHandler(new RetrofitErrorHandler()) works only with synchronous Requests
-                .build();
-
-        SonabisService.API api = restAdapter.create(SonabisService.API.class);
-        SonabisService.OAuth2 oauth = restAdapter.create(SonabisService.OAuth2.class);
-
+        SonabisService api = APIcon.getInstance().getService(SonabisService.class);
         api.getGame(new Callback<User>() {
 
             @Override

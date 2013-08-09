@@ -13,7 +13,7 @@ import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
  * @author Seweryn Zeman
  * @version todo
  */
-public class RetrofitErrorHandler implements retrofit.ErrorHandler {
+public class RestErrorHandler implements retrofit.ErrorHandler {
 
     @Override
     public Throwable handleError(RetrofitError error) {
