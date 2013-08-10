@@ -11,18 +11,30 @@ import android.content.Context;
  */
 public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
 
+    /**
+     * Authorization to server needs only client_id and client_secret.
+     */
+    public static final int GRANT_CLIENT_CREDENTIALS = 0;
+
+    /**
+     * Authorization to server needs user to pass his username and password.
+     */
+    public static final int GRANT_USER_CREDENTIALS = 1;
+
     private OAuth2Service authService;
     private OAuth2Helper helper;
 
     private String authorizationEndpoint;
+    private int grantType;
 
-    public OAuth2ServerAuthorization(Context context, String authorizationEndpoint, String appId, String appSecret) {
+    public OAuth2ServerAuthorization(Context context, String authorizationEndpoint,
+                                     int grantType, String appId, String appSecret) {
 
         this.authorizationEndpoint = authorizationEndpoint;
+        this.grantType = grantType;
 
         // initialize OAuth2 helper
-        helper = new OAuth2Helper(appId, appSecret);
-        helper.getFromPrefs(OAuth2Helper.getDefaultSharedPrefs(context));
+        helper = new OAuth2Helper(context, appId, appSecret);
     }
 
     @Override
@@ -32,7 +44,7 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
     }
 
     @Override
-    public boolean canTryDirectRequest() {
+    public boolean isAuthDataSufficient() {
 
         if (!helper.isOAuth2DataAvailable() || helper.isRefreshTokenExpired()) {
             return false;
@@ -41,6 +53,29 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean tryRenewAuthData() {
+
+        OAuth2ResponseData responseData;
+        if (!helper.isOAuth2DataAvailable() || helper.isRefreshTokenExpired()) {
+            if (grantType == GRANT_CLIENT_CREDENTIALS) {
+                responseData = getService().getTokensWithClientCredentials(helper.getAppId(), helper.getAppSecret());
+
+                return helper.setResponseData(responseData);
+            } else if (grantType == GRANT_USER_CREDENTIALS) {
+                return false;
+            }
+        } else if (helper.isAccessTokenExpired()) {
+            responseData = getService().authorizeWithRefreshToken(
+                helper.getAppId(), helper.getAppSecret(), helper.getRefreshToken()
+            );
+
+            return helper.setResponseData(responseData);
+        }
+
+        return false;
     }
 
     @Override

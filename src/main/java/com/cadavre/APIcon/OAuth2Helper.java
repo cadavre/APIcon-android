@@ -20,6 +20,9 @@ final class OAuth2Helper {
     public static final String ACCESS_TOKEN_EXPIRATION_FIELD = "access_token_expiration";
     public static final String REFRESH_TOKEN_EXPIRATION_FIELD = "refresh_token_expiration";
 
+    private Context context;
+    private SharedPreferences preferences;
+
     private String appId;
     private String appSecret;
 
@@ -28,10 +31,12 @@ final class OAuth2Helper {
     private long accessTokenExpiration;
     private long refreshTokenExpiration;
 
-    public OAuth2Helper(String appId, String appSecret) {
+    public OAuth2Helper(Context context, String appId, String appSecret) {
 
+        this.context = context;
         this.appId = appId;
         this.appSecret = appSecret;
+        getFromPrefs();
     }
 
     public static boolean isOAuthError(String errorMessage) {
@@ -52,25 +57,22 @@ final class OAuth2Helper {
 
     /**
      * Get (or create if not exist) a default SharedPreferences for OAuth2 data.
-     *
-     * @param context
-     *
-     * @return SharedPreferences
      */
-    public static SharedPreferences getDefaultSharedPrefs(Context context) {
+    public void loadDefaultSharedPrefs() {
 
-        return context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+        if (this.preferences == null) {
+            this.preferences = context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+        }
     }
 
     /**
      * Save current OAuth2Helper state to SharedPreferences.
      *
-     * @param preferences
-     *
      * @return true if success, false if failure
      */
-    public boolean saveToPrefs(SharedPreferences preferences) {
+    public boolean saveToPrefs() {
 
+        loadDefaultSharedPrefs();
         SharedPreferences.Editor editor = preferences.edit();
         editor
             .putString(ACCESS_TOKEN_FIELD, accessToken)
@@ -83,11 +85,10 @@ final class OAuth2Helper {
 
     /**
      * Get OAuth2Helper state from SharedPreferences.
-     *
-     * @param preferences
      */
-    public void getFromPrefs(SharedPreferences preferences) {
+    public void getFromPrefs() {
 
+        loadDefaultSharedPrefs();
         accessToken = preferences.getString(ACCESS_TOKEN_FIELD, "");
         refreshToken = preferences.getString(REFRESH_TOKEN_FIELD, "");
         accessTokenExpiration = preferences.getLong(ACCESS_TOKEN_EXPIRATION_FIELD, System.currentTimeMillis());
@@ -97,15 +98,17 @@ final class OAuth2Helper {
     /**
      * Set all data received by default from server.
      *
-     * @param accessToken
-     * @param refreshToken
-     * @param accessTokenLifetime
+     * @param responseData
+     *
+     * @return boolean
      */
-    public void setReceivedData(String accessToken, String refreshToken, int accessTokenLifetime) {
+    public boolean setResponseData(OAuth2ResponseData responseData) {
 
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        setAccessTokenLifetime(accessTokenLifetime);
+        this.accessToken = responseData.getAccessToken();
+        this.refreshToken = responseData.getRefreshToken();
+        setAccessTokenLifetime(responseData.getExpiresIn());
+
+        return saveToPrefs();
     }
 
     /**

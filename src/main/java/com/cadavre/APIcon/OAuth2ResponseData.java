@@ -10,7 +10,7 @@ final class OAuth2ResponseData {
 
     private String accessToken;
     private String refreshToken;
-    private long expiresIn;
+    private int expiresIn;
 
     /**
      * Get access_token.
@@ -35,9 +35,9 @@ final class OAuth2ResponseData {
     /**
      * Get lifetime of access_token. In seconds.
      *
-     * @return long
+     * @return int
      */
-    public long getExpiresIn() {
+    public int getExpiresIn() {
 
         return expiresIn;
     }

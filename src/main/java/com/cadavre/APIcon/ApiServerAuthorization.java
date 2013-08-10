@@ -26,11 +26,18 @@ interface ApiServerAuthorization {
     <T> T getService();
 
     /**
-     * Check if any local data can tell us about results of request we're goint o execute.
+     * Check if current auth data should be enough to send successful request.
      *
      * @return false if authorization will certainly fail, true otherwise
      */
-    public boolean canTryDirectRequest();
+    public boolean isAuthDataSufficient();
+
+    /**
+     * If auth data is for sure not sufficient to make successful request - try to obtain new data.
+     *
+     * @return true if new obtained auth data is fresh, false otherwise
+     */
+    public boolean tryRenewAuthData();
 
     /**
      * Get endpoint for obtaining new, fresh authorization data like OAuth2 tokens.

@@ -1,7 +1,8 @@
 package com.cadavre.APIcon;
 
 import android.os.Build;
-import com.cadavre.APIcon.exception.AuthorizationRequiredException;
+import com.cadavre.APIcon.exception.ServerAuthorizationRequiredException;
+import com.cadavre.APIcon.exception.UserAuthorizationRequiredException;
 import com.squareup.okhttp.OkHttpClient;
 import retrofit.android.AndroidApacheClient;
 import retrofit.client.*;
@@ -22,22 +23,21 @@ import java.util.regex.Pattern;
 class RestHttpClient implements Client {
 
     private Client client;
-    //private OAuth2Helper oAuth2Helper;
 
-    private static boolean isOAuth2InProgress = false;
-
+    /**
+     * Default constructor.
+     */
     public RestHttpClient() {
 
         client = getBestAvailableClient();
-        //this.oAuth2Helper = APIcon.getInstance().getOAuth2Helper();
     }
 
     @Override
     public Response execute(final Request request) throws IOException {
 
+        boolean needAuthorization = false;
         RequestRebuilder rebuilder = null;
         ApiServerAuthorization apiAuthorization = null;
-        boolean needAuthorization = false;
 
         // get endpoints that need authorization...
         Collection<Pattern> authEndpointPatterns = APIcon.getInstance().
@@ -49,7 +49,7 @@ class RestHttpClient implements Client {
             // prepare copy of Request and parse it's url
             rebuilder = new RequestRebuilder(request);
             URL url = rebuilder.parseUrl();
-            /* URL: getProtocol()://getHost()getPath()?getQuery() */
+            // URL: getProtocol()://getHost()getPath()?getQuery()
 
             // check if current endpoint needs authorization
             for (Pattern pattern : authEndpointPatterns) {
@@ -66,8 +66,9 @@ class RestHttpClient implements Client {
             }
         }
 
+        // since here we start with request executions
         Request readyRequest;
-        Response response;
+        Response response = null;
 
         // if we don't need authorization - go on - execute request...
         if (!needAuthorization) {
@@ -76,39 +77,34 @@ class RestHttpClient implements Client {
         }
         // ...but if we need authorization and we don't have tools to authorize - don't even bother
         else if (apiAuthorization == null) {
-            throw new AuthorizationRequiredException();
+            throw new ServerAuthorizationRequiredException();
         }
-        // now let's check if local data tells us we can execute request with our current auth params
-        // if yes - execute a request with new authorization headers
+        // if we need authorization - authorize request
         else if (needAuthorization) {
-            if (apiAuthorization.canTryDirectRequest()) { // TODO if (!apiAuthorization.canTryDirectRequest())
+            // if current auth data tells we will fail with request for sure
+            if (!apiAuthorization.isAuthDataSufficient()) {
 
-                rebuilder.setHeader(new Header( // TODO przenieść odtąd do końca ten kod
-                    apiAuthorization.getHeaderName(),
-                    apiAuthorization.getHeaderValue())
-                );
-                readyRequest = rebuilder.rebuild();
-                response = client.execute(readyRequest);
+                // try to get new auth data and check its result
+                boolean renewalSucceeded = apiAuthorization.tryRenewAuthData();
+                if (!renewalSucceeded) {
+                    // if we couldn't renew - there's nothing else left to do
+                    throw new UserAuthorizationRequiredException();
+                }
             }
-            // but if local data tells there is no way for successful authorization - handle it
-            else {
-                // TODO check why we cannot execute and "tell what to do!" if you are so sure ApiAuth!
-                /**
-                 * Metoda w interfejsie. Dla OAuth2 będą case'y:
-                 * 1a. !isOAuth2DataAvailable() - w ogóle nie zautoryzowano
-                 * 1b. isRefreshTokenExpired() - wszystkie tokeny wymarły
-                 * 2 . isAccessTokenExpired() - access_token umarł, na szczęście działa refresh_token
-                 *
-                 * Ta metoda niech zwróci boola - jeśli się udało true, jeśli nie false.
-                 * true {
-                 *     zabawa z rebuilderem - dokładnie jak wyżej
-                 * }
-                 * false {
-                 *     throw new Exception
-                 * }
-                 */
-            }
+
+            // if we got here - either we have valid auth data or fresh, just received auth data
+            rebuilder.setHeader(new Header(
+                apiAuthorization.getHeaderName(),
+                apiAuthorization.getHeaderValue())
+            );
+            readyRequest = rebuilder.rebuild();
+            response = client.execute(readyRequest);
         }
+
+        /*
+         * In this point we've made anything we could to make a successful request becoming
+         * response we've wanted to receive. Now analyze executed response...
+         */
 
         // tutaj sprawdzić czy Response nie ma wybrakowanego albo starego OAuth2,
         // jeśli tak zrobić request w międzyczasie i wysłać request jeszcze raz
@@ -155,6 +151,10 @@ class RestHttpClient implements Client {
                     });
 
         }*/
+
+        if (response == null) {
+            throw new RuntimeException("Unknown reason of Response being null");
+        }
 
         return response;
     }
@@ -225,6 +225,9 @@ class RestHttpClient implements Client {
 
         private final OkHttpClient client;
 
+        /**
+         * Default constructor.
+         */
         public CustomOkClient() {
 
             client = new OkHttpClient();
