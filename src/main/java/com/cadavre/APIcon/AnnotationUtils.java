@@ -52,7 +52,7 @@ final class AnnotationUtils {
                         } catch (Exception e) {
                             Logger.dummyException(e);
                         }
-                        continue;
+                        break;
                     }
                 }
             }
@@ -65,11 +65,18 @@ final class AnnotationUtils {
         return findings;
     }
 
+    /**
+     * Parse path to get authorization pattern.
+     *
+     * @param path
+     *
+     * @return String
+     */
     private static String parsePath(String path) {
 
         // get the relative URL path and existing query string, if present
         String url = path;
-        String query = null;
+        String query;
         int question = path.indexOf('?');
         if (question != -1 && question < path.length() - 1) {
             url = path.substring(0, question);

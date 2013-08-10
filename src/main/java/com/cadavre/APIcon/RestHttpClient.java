@@ -17,6 +17,20 @@ import java.util.regex.Pattern;
  * Very basic RestHttpClient implementation to execute Request into Response.
  * Uses best available Client existing in project.
  *
+ * This Client also takes care of authorization process if ApiServerAuthorization was declared in APIcon.
+ * How it works:
+ * 1. On adding services to ApiServer, every @Authorization annotated method is mapped.
+ * 2. If map size is greater than 0, we are checking if current path needs authorization.
+ * 2a If no, we are just executing an request.
+ * 2b If yes we are checking local conditions that helps to resolve if we got enough data to send request.
+ * 3a If we have conditions - we are executing authorized request.
+ * 3b If we don't - we are trying to get fresh auth data from server.
+ * 4a If data can be received without user interaction - we do it.
+ * 4b If we need user interaction - we end client execution of request,
+ * BUT we are calling OnUserAuthorizationListener if it's not null.
+ *
+ * At the end of executed request, we are again checking it's results to handle auth errors.
+ *
  * @author Seweryn Zeman
  * @version 1
  */
@@ -68,7 +82,7 @@ class RestHttpClient implements Client {
 
         // since here we start with request executions
         Request readyRequest;
-        Response response = null;
+        Response response;
 
         // if we don't need authorization - go on - execute request...
         if (!needAuthorization) {
@@ -81,7 +95,7 @@ class RestHttpClient implements Client {
             throw new ServerAuthorizationRequiredException();
         }
         // if we need authorization - authorize request
-        else if (needAuthorization) {
+        else {
             // if current auth data tells we will fail with request for sure
             if (!apiAuthorization.isAuthDataSufficient()) {
 
@@ -111,8 +125,9 @@ class RestHttpClient implements Client {
          * response we've wanted to receive. Now analyze executed response...
          */
 
-        // todo check response for handleable OAuth2 data
+        // todo check response for handleable (O)Auth(2) data
 
+        // just for sure
         if (response == null) {
             throw new RuntimeException("Unknown reason of Response being null");
         }

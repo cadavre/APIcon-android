@@ -123,6 +123,7 @@ public final class ApiServer {
      *
      * @return service
      */
+    @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> serviceInterface) {
 
         T service = (T) interfaceToServiceMap.get(serviceInterface);

@@ -59,11 +59,9 @@ final class RequestRebuilder {
      */
     public RequestRebuilder setHeader(Header newHeader) {
 
-        boolean isReplaced = false;
         for (Header oldHeader : headers) {
             if (oldHeader.getName().equals(newHeader.getName())) {
                 headers.remove(oldHeader);
-                isReplaced = true;
                 break;
             }
         }
