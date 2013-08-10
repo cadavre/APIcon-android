@@ -3,6 +3,7 @@ package com.cadavre.APIcon;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
@@ -55,6 +56,22 @@ class RestErrorHandler implements retrofit.ErrorHandler {
         }
 
         return false;
+    }
+
+    public static boolean isOAuthError(String errorMessage) {
+
+        String[] oauthErrors = {
+            // fetching access token
+            "invalid_client",           // wrong client_id/client_secret
+            "invalid_request",          // params missing
+            "invalid_grant",            // wrong refresh_token
+            "unsupported_grant_type",   // wrong grant_type
+            // secured resources access
+            "invalid_grant",            // wrong access_token, expired...
+            "access_denied"             // user with weak ROLE
+        };
+
+        return Arrays.asList(oauthErrors).contains(errorMessage);
     }
 
     /**

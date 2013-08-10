@@ -3,8 +3,6 @@ package com.cadavre.APIcon;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.util.Arrays;
-
 /**
  * OAuth2 helper class for maintaining application-layer data.
  *
@@ -22,6 +20,7 @@ final class OAuth2Helper {
 
     private Context context;
     private SharedPreferences preferences;
+    private int refreshTokenLifetime;
 
     private String appId;
     private String appSecret;
@@ -31,28 +30,23 @@ final class OAuth2Helper {
     private long accessTokenExpiration;
     private long refreshTokenExpiration;
 
-    public OAuth2Helper(Context context, String appId, String appSecret) {
+    /**
+     * Default constructor.
+     * Due to some servers which are not telling about refresh_token expiration,
+     * we need to have a default value.
+     *
+     * @param context
+     * @param appId
+     * @param appSecret
+     * @param refreshTokenLifetime in seconds
+     */
+    public OAuth2Helper(Context context, String appId, String appSecret, int refreshTokenLifetime) {
 
         this.context = context;
         this.appId = appId;
         this.appSecret = appSecret;
+        this.refreshTokenLifetime = refreshTokenLifetime;
         getFromPrefs();
-    }
-
-    public static boolean isOAuthError(String errorMessage) {
-
-        String[] oauthErrors = {
-            // fetching access token
-            "invalid_client",           // wrong client_id/client_secret
-            "invalid_request",          // params missing
-            "invalid_grant",            // wrong refresh_token
-            "unsupported_grant_type",   // wrong grant_type
-            // secured resources access
-            "invalid_grant",            // wrong access_token, expired...
-            "access_denied"             // user with weak ROLE
-        };
-
-        return Arrays.asList(oauthErrors).contains(errorMessage);
     }
 
     /**
@@ -107,6 +101,7 @@ final class OAuth2Helper {
         this.accessToken = responseData.getAccessToken();
         this.refreshToken = responseData.getRefreshToken();
         setAccessTokenLifetime(responseData.getExpiresIn());
+        setRefreshTokenLifetime(refreshTokenLifetime);
 
         return saveToPrefs();
     }
@@ -118,7 +113,7 @@ final class OAuth2Helper {
      */
     public boolean isAccessTokenExpired() {
 
-        return System.currentTimeMillis() < accessTokenExpiration;
+        return System.currentTimeMillis() > accessTokenExpiration;
     }
 
     /**
@@ -128,7 +123,7 @@ final class OAuth2Helper {
      */
     public boolean isRefreshTokenExpired() {
 
-        return System.currentTimeMillis() < refreshTokenExpiration;
+        return System.currentTimeMillis() > refreshTokenExpiration;
     }
 
     /**
@@ -138,7 +133,7 @@ final class OAuth2Helper {
      */
     public boolean isOAuth2DataAvailable() {
 
-        if (accessToken != null || !accessToken.equals("")) {
+        if (accessToken != null && !accessToken.equals("")) {
             return true;
         }
 
@@ -176,16 +171,6 @@ final class OAuth2Helper {
     }
 
     /**
-     * Set OAuth2 access token called Bearer.
-     *
-     * @param accessToken
-     */
-    public void setAccessToken(String accessToken) {
-
-        this.accessToken = accessToken;
-    }
-
-    /**
      * Get OAuth2 refresh token.
      *
      * @return String
@@ -196,16 +181,6 @@ final class OAuth2Helper {
     }
 
     /**
-     * Set OAuth2 refresh token.
-     *
-     * @param refreshToken
-     */
-    public void setRefreshToken(String refreshToken) {
-
-        this.refreshToken = refreshToken;
-    }
-
-    /**
      * Get time of access token (Bearer) expiration.
      *
      * @return long
@@ -213,16 +188,6 @@ final class OAuth2Helper {
     public long getAccessTokenExpiration() {
 
         return accessTokenExpiration;
-    }
-
-    /**
-     * Set time of access token (Bearer) expiration.
-     *
-     * @param accessTokenExpiration
-     */
-    public void setAccessTokenExpiration(long accessTokenExpiration) {
-
-        this.accessTokenExpiration = accessTokenExpiration;
     }
 
     /**
@@ -243,16 +208,6 @@ final class OAuth2Helper {
     public long getRefreshTokenExpiration() {
 
         return refreshTokenExpiration;
-    }
-
-    /**
-     * Set time of refresh token expiration.
-     *
-     * @param refreshTokenExpiration
-     */
-    public void setRefreshTokenExpiration(long refreshTokenExpiration) {
-
-        this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
     /**

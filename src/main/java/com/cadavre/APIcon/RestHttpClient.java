@@ -85,9 +85,11 @@ class RestHttpClient implements Client {
             // if current auth data tells we will fail with request for sure
             if (!apiAuthorization.isAuthDataSufficient()) {
 
+                Logger.d("Trying to renew auth data");
                 // try to get new auth data and check its result
                 boolean renewalSucceeded = apiAuthorization.tryRenewAuthData();
                 if (!renewalSucceeded) {
+                    Logger.d("Auth data renewal failed");
                     // if we couldn't renew - there's nothing else left to do
                     throw new UserAuthorizationRequiredException();
                 }
@@ -98,7 +100,8 @@ class RestHttpClient implements Client {
                 apiAuthorization.getHeaderName(),
                 apiAuthorization.getHeaderValue())
             );
-            Logger.d("Executing request with authorization");
+            Logger.d("Executing request with authorization:");
+            Logger.d(apiAuthorization.getHeaderValue());
             readyRequest = rebuilder.rebuild();
             response = client.execute(readyRequest);
         }
@@ -108,51 +111,7 @@ class RestHttpClient implements Client {
          * response we've wanted to receive. Now analyze executed response...
          */
 
-        // tutaj sprawdzić czy Response nie ma wybrakowanego albo starego OAuth2,
-        // jeśli tak zrobić request w międzyczasie i wysłać request jeszcze raz
-        // otrzymując nowego Bearera, które można użyć w ponownym wykonaniu execute()
-
-        // if (isOAuth2Error && !isOAuth2InProgress) {
-        /*if (response.getStatus() == 401) {
-            SonabisService.OAuth2 oauth = TestActivity.restAdapter.create(SonabisService.OAuth2.class);
-            oauth.getTokensWithUserCredentials(
-                    "2_2vg6yqabu7ggwc4oscgswcwwogw0cc08w08k080g0koggsosgg",
-                    "1kybihzq182s0c4kc0c8ko44wg4o0w4ocg8cosso0o40gs4cgo",
-                    "abba",
-                    "abba",
-                    new Callback<OAuth2ResponseData>() {
-
-                        @Override
-                        public void success(OAuth2ResponseData data, Response response) {
-
-                            // podmiana headera z autoryzacją
-                            List<Header> newHeaders = new ArrayList<Header>();
-                            newHeaders.addAll(request.getHeaders());
-
-                            for (Header header : newHeaders) {
-                                if (header.getName().equals("Authorization")) {
-                                    newHeaders.remove(header);
-                                    break;
-                                }
-                            }
-                            newHeaders.add(new Header("Authorization", "Bearer " + data.getAccessToken()));
-
-                            Request newRequest = new Request(request.getMethod(), request.getUrl(), newHeaders,
-                                    request.getBody());
-                            try {
-                                Response newResponse = client.execute(newRequest);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        @Override
-                        public void failure(RetrofitError error) {
-
-                        }
-                    });
-
-        }*/
+        // todo check response for handleable OAuth2 data
 
         if (response == null) {
             throw new RuntimeException("Unknown reason of Response being null");

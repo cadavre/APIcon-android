@@ -2,16 +2,19 @@ package com.cadavre.APIcon.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import com.cadavre.APIcon.*;
-import retrofit.RestAdapter;
+import android.widget.Toast;
+import com.cadavre.APIcon.APIcon;
+import com.cadavre.APIcon.ApiServer;
+import com.cadavre.APIcon.OAuth2ServerAuthorization;
+import com.cadavre.APIcon.R;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class TestActivity extends Activity {
-
-    public static RestAdapter restAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -19,13 +22,15 @@ public class TestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        /*ApiServer server = new ApiServer("http://api.sonabis.com"); // create a server with authorization or no
-        server.addServiceInterface(SonabisService.class); // add your interfaces
-        APIcon.initialize(server); // initialize APIcon*/
+        OAuth2ServerAuthorization serverAuth = new OAuth2ServerAuthorization(
+            getApplicationContext(), "/oauth/v2", OAuth2ServerAuthorization.GRANT_CLIENT_CREDENTIALS,
+            "5_11mvv7ktaa40owgsk44gwwgw0o8c4ck000cw4wos0gokkcco4g",
+            "3ga5gbwk4r8ko4wckckswwsw44080w8wgkwgscwsgko844w8ks"
+        ).setRefreshTokenLifetime(OAuth2ServerAuthorization.DEFAULT_REFRESH_TOKEN_LIFETIME);
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        ApiServer server = new ApiServer("http://api.sonabis.com/app_dev.php/oauth/v2");
+        ApiServer server = new ApiServer("http://api.sonabis.com");
+        server.setAuthorization(serverAuth);
+        server.addServiceInterface(SonabisService.class);
         APIcon.initialize(server);
 
         Button btn = (Button) findViewById(R.id.button);
@@ -41,15 +46,7 @@ public class TestActivity extends Activity {
 
     private void callAPITest() {
 
-        OAuth2Service service = APIcon.getInstance().getService(OAuth2Service.class);
-
-        OAuth2ResponseData data = service.getTokensWithClientCredentials(
-            "5_11mvv7ktaa40owgsk44gwwgw0o8c4ck000cw4wos0gokkcco4g",
-            "3ga5gbwk4r8ko4wckckswwsw44080w8wgkwgscwsgko844w8ks"
-        );
-        Log.i("APIcon", "actk=" + data.getAccessToken());
-
-        /*SonabisService api = APIcon.getInstance().getService(SonabisService.class);
+        SonabisService api = APIcon.getInstance().getService(SonabisService.class);
         api.getScore(1, "me", new Callback<User>() {
 
             @Override
@@ -64,6 +61,6 @@ public class TestActivity extends Activity {
                 Log.e("APIcon", "ERROR", error);
                 Toast.makeText(TestActivity.this, "failure", Toast.LENGTH_SHORT).show();
             }
-        });*/
+        });
     }
 }

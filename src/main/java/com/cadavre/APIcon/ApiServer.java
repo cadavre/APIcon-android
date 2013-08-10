@@ -33,7 +33,10 @@ public final class ApiServer {
      */
     public ApiServer(String baseUrl) {
 
-        this.baseUrl = baseUrl;
+        // trim trailing slash
+        this.baseUrl = baseUrl.replaceFirst("/$", "");
+
+        // create Retrofit REST adapter
         this.restAdapter = new RestAdapter.Builder()
             .setLog(new Logger())
             .setDebug(BuildConfig.DEBUG)

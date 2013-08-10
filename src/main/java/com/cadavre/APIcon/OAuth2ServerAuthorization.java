@@ -21,20 +21,34 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
      */
     public static final int GRANT_USER_CREDENTIALS = 1;
 
+    /**
+     * Default lifetime of refresh_token. In seconds.
+     */
+    public static final int DEFAULT_REFRESH_TOKEN_LIFETIME = 1209600;
+
     private OAuth2Service authService;
     private OAuth2Helper helper;
 
+    private int refreshTokenLifetime = DEFAULT_REFRESH_TOKEN_LIFETIME;
     private String authorizationEndpoint;
     private int grantType;
 
     public OAuth2ServerAuthorization(Context context, String authorizationEndpoint,
                                      int grantType, String appId, String appSecret) {
 
-        this.authorizationEndpoint = authorizationEndpoint;
+        // trim trailing slash
+        this.authorizationEndpoint = authorizationEndpoint.replaceFirst("/$", "");
         this.grantType = grantType;
 
         // initialize OAuth2 helper
-        helper = new OAuth2Helper(context, appId, appSecret);
+        helper = new OAuth2Helper(context, appId, appSecret, refreshTokenLifetime);
+    }
+
+    public OAuth2ServerAuthorization setRefreshTokenLifetime(int refreshTokenLifetime) {
+
+        this.refreshTokenLifetime = refreshTokenLifetime;
+
+        return this;
     }
 
     @Override
