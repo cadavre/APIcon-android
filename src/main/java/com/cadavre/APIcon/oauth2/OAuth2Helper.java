@@ -1,4 +1,4 @@
-package com.cadavre.APIcon;
+package com.cadavre.APIcon.oauth2;
 
 import android.content.Context;
 import android.content.SharedPreferences;

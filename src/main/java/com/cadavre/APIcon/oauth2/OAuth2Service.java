@@ -1,5 +1,6 @@
-package com.cadavre.APIcon;
+package com.cadavre.APIcon.oauth2;
 
+import retrofit.Callback;
 import retrofit.http.GET;
 import retrofit.http.Query;
 
@@ -12,11 +13,12 @@ import retrofit.http.Query;
 interface OAuth2Service {
 
     @GET("/token?grant_type=password")
-    OAuth2ResponseData getTokensWithUserCredentials(
+    void getTokensWithUserCredentials(
         @Query("client_id") String appId,
         @Query("client_secret") String appSecret,
         @Query("username") String username,
-        @Query("password") String password
+        @Query("password") String password,
+        Callback<OAuth2ResponseData> cb
     );
 
     @GET("/token?grant_type=client_credentials")
@@ -26,7 +28,7 @@ interface OAuth2Service {
     );
 
     @GET("/token?grant_type=refresh_token")
-    OAuth2ResponseData authorizeWithRefreshToken(
+    OAuth2ResponseData getTokensWithRefreshToken(
         @Query("client_id") String appId,
         @Query("client_secret") String appSecret,
         @Query("refresh_token") String refreshToken

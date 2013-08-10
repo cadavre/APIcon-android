@@ -1,5 +1,7 @@
 package com.cadavre.APIcon;
 
+import com.cadavre.APIcon.exception.ApiNotInitializedException;
+
 /**
  * APIcon class, takes care of initialization and managing whole API system.
  *
@@ -45,6 +47,10 @@ public final class APIcon {
      */
     public static APIcon getInstance() {
 
+        if (ourInstance == null) {
+            throw new ApiNotInitializedException();
+        }
+
         return ourInstance;
     }
 
@@ -56,9 +62,9 @@ public final class APIcon {
      *
      * @return service
      */
-    public <T> T getService(Class<T> serviceInterface) {
+    public static <T> T getService(Class<T> serviceInterface) {
 
-        return server.getService(serviceInterface);
+        return getInstance().getServer().getService(serviceInterface);
     }
 
     /* package */ ApiServer getServer() {

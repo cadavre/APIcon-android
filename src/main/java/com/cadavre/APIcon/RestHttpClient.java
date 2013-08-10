@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * Uses best available Client existing in project.
  *
  * @author Seweryn Zeman
- * @version alpha
+ * @version 1
  */
 class RestHttpClient implements Client {
 

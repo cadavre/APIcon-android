@@ -1,4 +1,4 @@
-package com.cadavre.APIcon.activities;
+package com.cadavre.APIcon.examples;
 
 /**
  * APIcon class

@@ -1,4 +1,4 @@
-package com.cadavre.APIcon.activities;
+package com.cadavre.APIcon.examples;
 
 import com.cadavre.APIcon.annotation.Authorization;
 import retrofit.Callback;
@@ -10,7 +10,7 @@ import retrofit.http.Path;
  *
  * @author Seweryn Zeman
  */
-public interface SonabisService {
+public interface TestService {
 
     @Authorization
     @GET("/s/game")

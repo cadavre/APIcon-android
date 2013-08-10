@@ -1,12 +1,17 @@
 package com.cadavre.APIcon.exception;
 
 /**
- * Authorization was required during request but no ApiServerAuthorization was able to fulfill it.
+ * User needs to authorize to server.
  */
 public class UserAuthorizationRequiredException extends RuntimeException {
 
     public UserAuthorizationRequiredException() {
 
-        super("Current user needs to be reauthorized by ApiServer.");
+        super("Current user needs to be authorized by ApiServer.");
+    }
+
+    public UserAuthorizationRequiredException(String msg) {
+
+        super(msg);
     }
 }

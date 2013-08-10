@@ -123,7 +123,7 @@ public final class ApiServer {
      *
      * @return service
      */
-    /* package */ <T> T getService(Class<T> serviceInterface) {
+    public <T> T getService(Class<T> serviceInterface) {
 
         T service = (T) interfaceToServiceMap.get(serviceInterface);
         if (service == null) {

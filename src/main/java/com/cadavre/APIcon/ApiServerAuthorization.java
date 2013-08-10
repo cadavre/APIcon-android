@@ -1,11 +1,20 @@
 package com.cadavre.APIcon;
 
+import android.os.Bundle;
+
 /**
- * APIcon class
+ * Interface for creating server authorization handlers.
+ * This interface supports:
+ * - initialization
+ * - providing auth Retrofit service with own ApiServer
+ * - auth data renewal based on local informations
+ * - auth data renewal based on user interaction thanks to OnUserAuthorizationListener
+ * - providing authorization as "Authorization" header
  *
  * @author Seweryn Zeman
+ * @version 1
  */
-interface ApiServerAuthorization {
+public interface ApiServerAuthorization {
 
     /**
      * Initialize authorizator if needed.
@@ -34,10 +43,18 @@ interface ApiServerAuthorization {
 
     /**
      * If auth data is for sure not sufficient to make successful request - try to obtain new data.
+     * Notice: this code will run on same Thread as request execution.
      *
      * @return true if new obtained auth data is fresh, false otherwise
      */
     public boolean tryRenewAuthData();
+
+    /**
+     * If auth data is for sure not sufficient to make successful request - try to obtain new data.
+     * This method is used if user interaction is needed. Results of user interactions are passed through Bundle.
+     * Notice: this code will run on UI thread!
+     */
+    public void tryRenewAuthDataWithUserInteraction(Bundle params);
 
     /**
      * Get endpoint for obtaining new, fresh authorization data like OAuth2 tokens.

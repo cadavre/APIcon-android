@@ -1,4 +1,4 @@
-package com.cadavre.APIcon;
+package com.cadavre.APIcon.oauth2;
 
 /**
  * Object representing OAuth2 server response for tokens obtaining endpoint.

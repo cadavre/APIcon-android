@@ -1,13 +1,21 @@
-package com.cadavre.APIcon;
+package com.cadavre.APIcon.oauth2;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import com.cadavre.APIcon.ApiServer;
+import com.cadavre.APIcon.ApiServerAuthorization;
+import com.cadavre.APIcon.OnUserAuthorizationListener;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 /**
  * OAuth2 server authorization implementation.
  *
  * @author Seweryn Zeman
  * @version 1
- *          todo take care of this shitty initialization()
  */
 public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
 
@@ -33,6 +41,8 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
     private String authorizationEndpoint;
     private int grantType;
 
+    private OnUserAuthorizationListener userAuthListener;
+
     public OAuth2ServerAuthorization(Context context, String authorizationEndpoint,
                                      int grantType, String appId, String appSecret) {
 
@@ -41,15 +51,40 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
         this.grantType = grantType;
 
         // initialize OAuth2 helper
-        helper = new OAuth2Helper(context, appId, appSecret, refreshTokenLifetime);
+        helper = new OAuth2Helper(context.getApplicationContext(), appId, appSecret, refreshTokenLifetime);
     }
 
+    /**
+     * Set server value for refresh token expiration.
+     *
+     * @param refreshTokenLifetime
+     *
+     * @return OAuth2ServerAuthorization
+     */
     public OAuth2ServerAuthorization setRefreshTokenLifetime(int refreshTokenLifetime) {
 
         this.refreshTokenLifetime = refreshTokenLifetime;
 
         return this;
     }
+
+    /**
+     * Set listener used when user interaction is needed to authorize.
+     * For now - supported with GRANT_USER_CREDENTIALS. In this case
+     * onAuthorizationRequired() method MUST return a Bundle object
+     * with username and password:
+     * `username` (String)
+     * `password` (String)
+     *
+     * @param listener
+     */
+    public void setOnUserAuthorizationListener(OnUserAuthorizationListener listener) {
+
+        this.userAuthListener = listener;
+        this.userAuthListener.setAuthorization(this);
+    }
+
+    /* * Internal methods below * */
 
     @Override
     public void initialize(String baseUrl) {
@@ -79,10 +114,20 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
 
                 return helper.setResponseData(responseData);
             } else if (grantType == GRANT_USER_CREDENTIALS) {
+                if (userAuthListener != null) {
+                    runOnUiThread(new Runnable() {
+
+                        public void run() {
+
+                            userAuthListener.onAuthorizationRequired();
+                        }
+                    });
+                }
+
                 return false;
             }
         } else if (helper.isAccessTokenExpired()) {
-            responseData = getService().authorizeWithRefreshToken(
+            responseData = getService().getTokensWithRefreshToken(
                 helper.getAppId(), helper.getAppSecret(), helper.getRefreshToken()
             );
 
@@ -90,6 +135,36 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
         }
 
         return false;
+    }
+
+    @Override
+    public void tryRenewAuthDataWithUserInteraction(Bundle params) {
+
+        if (grantType == GRANT_USER_CREDENTIALS) {
+            getService().getTokensWithUserCredentials(
+                helper.getAppId(), helper.getAppSecret(),
+                params.getString("username"), params.getString("password"),
+                new Callback<OAuth2ResponseData>() {
+
+                    @Override
+                    public void success(OAuth2ResponseData responseData, Response response) {
+
+                        helper.setResponseData(responseData);
+                        if (userAuthListener != null) {
+                            userAuthListener.onSuccess();
+                        }
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+
+                        if (userAuthListener != null) {
+                            userAuthListener.onFailure();
+                        }
+                    }
+                }
+            );
+        }
     }
 
     @Override
@@ -114,5 +189,22 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
     public String getHeaderValue() {
 
         return "Bearer " + helper.getAccessToken();
+    }
+
+    /**
+     * Private helper to run action on UI thread without access to Activity context.
+     *
+     * @param action
+     */
+    private void runOnUiThread(final Runnable action) {
+
+        final Handler mHandler = new Handler(Looper.getMainLooper());
+        new Thread() {
+
+            public void run() {
+
+                mHandler.post(action);
+            }
+        }.start();
     }
 }
