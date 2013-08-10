@@ -2,11 +2,11 @@ package com.cadavre.APIcon.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import com.cadavre.APIcon.ApiServer;
-import com.cadavre.APIcon.OAuth2Service;
-import com.cadavre.APIcon.R;
+import com.cadavre.APIcon.*;
 import retrofit.RestAdapter;
 
 public class TestActivity extends Activity {
@@ -23,6 +23,11 @@ public class TestActivity extends Activity {
         server.addServiceInterface(SonabisService.class); // add your interfaces
         APIcon.initialize(server); // initialize APIcon*/
 
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        ApiServer server = new ApiServer("http://api.sonabis.com/app_dev.php/oauth/v2");
+        APIcon.initialize(server);
+
         Button btn = (Button) findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener() {
 
@@ -36,8 +41,13 @@ public class TestActivity extends Activity {
 
     private void callAPITest() {
 
-        ApiServer server = new ApiServer("http://api.sonabis.com/app_dev.php/oauth/v2/token");
-        OAuth2Service service = server.
+        OAuth2Service service = APIcon.getInstance().getService(OAuth2Service.class);
+
+        OAuth2ResponseData data = service.getTokensWithClientCredentials(
+            "5_11mvv7ktaa40owgsk44gwwgw0o8c4ck000cw4wos0gokkcco4g",
+            "3ga5gbwk4r8ko4wckckswwsw44080w8wgkwgscwsgko844w8ks"
+        );
+        Log.i("APIcon", "actk=" + data.getAccessToken());
 
         /*SonabisService api = APIcon.getInstance().getService(SonabisService.class);
         api.getScore(1, "me", new Callback<User>() {

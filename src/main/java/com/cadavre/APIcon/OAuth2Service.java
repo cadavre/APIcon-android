@@ -11,7 +11,7 @@ import retrofit.http.Query;
  */
 interface OAuth2Service {
 
-    @GET("?grant_type=password")
+    @GET("/token?grant_type=password")
     OAuth2ResponseData getTokensWithUserCredentials(
         @Query("client_id") String appId,
         @Query("client_secret") String appSecret,
@@ -19,13 +19,13 @@ interface OAuth2Service {
         @Query("password") String password
     );
 
-    @GET("?grant_type=client_credentials")
+    @GET("/token?grant_type=client_credentials")
     OAuth2ResponseData getTokensWithClientCredentials(
         @Query("client_id") String appId,
         @Query("client_secret") String appSecret
     );
 
-    @GET("?grant_type=refresh_token")
+    @GET("/token?grant_type=refresh_token")
     OAuth2ResponseData authorizeWithRefreshToken(
         @Query("client_id") String appId,
         @Query("client_secret") String appSecret,

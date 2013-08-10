@@ -72,6 +72,7 @@ class RestHttpClient implements Client {
 
         // if we don't need authorization - go on - execute request...
         if (!needAuthorization) {
+            Logger.d("Executing request without authorization");
             readyRequest = request;
             response = client.execute(readyRequest);
         }
@@ -97,6 +98,7 @@ class RestHttpClient implements Client {
                 apiAuthorization.getHeaderName(),
                 apiAuthorization.getHeaderValue())
             );
+            Logger.d("Executing request with authorization");
             readyRequest = rebuilder.rebuild();
             response = client.execute(readyRequest);
         }
