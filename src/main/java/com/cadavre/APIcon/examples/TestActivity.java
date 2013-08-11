@@ -33,7 +33,7 @@ public class TestActivity extends Activity {
         ApiServer server = new ApiServer("http://api.sonabis.com");
         server.setAuthorization(serverAuth);
         server.addServiceInterface(TestService.class);
-        APIcon.initialize(server);
+        APIcon.initialize(getApplicationContext(), server);
 
         Button btn = (Button) findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener() {
@@ -49,7 +49,7 @@ public class TestActivity extends Activity {
     private void callAPITest() {
 
         TestService api = APIcon.getService(TestService.class);
-        api.getScore(1, "me", new Callback<User>() {
+        api.putScore(1, new Callback<User>() {
 
             @Override
             public void success(User user, Response response) {

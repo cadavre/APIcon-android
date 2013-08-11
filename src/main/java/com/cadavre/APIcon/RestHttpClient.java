@@ -4,11 +4,13 @@ import android.os.Build;
 import com.cadavre.APIcon.exception.ServerAuthorizationRequiredException;
 import com.cadavre.APIcon.exception.UserAuthorizationRequiredException;
 import com.squareup.okhttp.OkHttpClient;
+import retrofit.RetrofitError;
 import retrofit.android.AndroidApacheClient;
 import retrofit.client.*;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.SocketException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.regex.Pattern;
@@ -49,16 +51,44 @@ class RestHttpClient implements Client {
     @Override
     public Response execute(final Request request) throws IOException {
 
+        // first check if network is available, cache if may
+        if (!APIcon.getInstance().getNetworkChecker().isNetworkAvailable()) {
+            Collection<Pattern> cacheEndpointPatterns = APIcon.getInstance().
+                getServer().getCachedEndpoints().values();
+            if (!cacheEndpointPatterns.isEmpty()) {
+
+                RequestRebuilder rebuilder = new RequestRebuilder(request);
+                URL url = rebuilder.parseUrl();
+                boolean doCaching = false;
+                for (Pattern pattern : cacheEndpointPatterns) {
+                    if (pattern.matcher(url.getPath()).find()) {
+                        Logger.d("Url " + request.getUrl() + " matched cache pattern " + pattern.pattern());
+                        doCaching = true;
+                        break;
+                    }
+                }
+
+                if (doCaching) {
+                    // not supported
+                    /*if (!ObjectCacher.cacheObject(request)) {
+                        throw RetrofitError.networkError(request.getUrl(), new SocketException("No network available," +
+                            " couldn't cache request"));
+                    }*/
+                }
+            }
+
+            throw RetrofitError.networkError(request.getUrl(), new SocketException("No network available"));
+        }
+
         boolean needAuthorization = false;
         RequestRebuilder rebuilder = null;
         ApiServerAuthorization apiAuthorization = null;
 
         // get endpoints that need authorization...
         Collection<Pattern> authEndpointPatterns = APIcon.getInstance().
-            getServer().getEndpointsRequiringAuthorization().values();
+            getServer().getAuthorizedEndpoints().values();
         // ...and if there are some - check for authorization requirement
         if (!authEndpointPatterns.isEmpty()) {
-            Logger.d("Found endpoints with authorization required");
 
             // prepare copy of Request and parse it's url
             rebuilder = new RequestRebuilder(request);
@@ -125,11 +155,12 @@ class RestHttpClient implements Client {
          * response we've wanted to receive. Now analyze executed response...
          */
 
-        // todo check response for handleable (O)Auth(2) data
+        // todo check response for handlable (O)Auth(2) data
 
         // just for sure
         if (response == null) {
-            throw new RuntimeException("Unknown reason of Response being null");
+            throw RetrofitError.unexpectedError(request.getUrl(),
+                new NullPointerException("Unknown reason of Response being null."));
         }
 
         return response;

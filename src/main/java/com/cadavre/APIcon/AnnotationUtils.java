@@ -1,6 +1,7 @@
 package com.cadavre.APIcon;
 
 import com.cadavre.APIcon.annotation.Authorization;
+import com.cadavre.APIcon.annotation.Cache;
 import retrofit.http.RestMethod;
 
 import java.lang.annotation.Annotation;
@@ -19,6 +20,51 @@ final class AnnotationUtils {
 
     private static final String PARAM = "[a-zA-Z][a-zA-Z0-9_-]*";
     private static final Pattern PARAM_URL_REGEX = Pattern.compile("\\{(" + PARAM + ")\\}");
+
+    /**
+     * Parse Retrofit service interface for Cache annotations.
+     *
+     * @param serviceInterface
+     *
+     * @return HashMap with methods and urls
+     */
+    public static HashMap<Method, Pattern> parseServiceInterfaceCache(Class<?> serviceInterface) {
+
+        HashMap<Method, Pattern> findings = new HashMap<Method, Pattern>();
+        for (Method method : serviceInterface.getMethods()) {
+
+            boolean doCaching = false;
+            String pattern = null;
+            for (Annotation methodAnnotation : method.getAnnotations()) {
+                Class<? extends Annotation> annotationType = methodAnnotation.annotationType();
+
+                // look for our annotation
+                if (annotationType == Cache.class) {
+                    doCaching = true;
+                    continue;
+                }
+
+                // look for a @RestMethod annotation indicating retrofit method
+                for (Annotation innerAnnotation : annotationType.getAnnotations()) {
+                    if (RestMethod.class == innerAnnotation.annotationType()) {
+                        try {
+                            pattern = (String) annotationType.getMethod("value").invoke(methodAnnotation);
+                            pattern = parsePath(pattern);
+                        } catch (Exception e) {
+                            Logger.dummyException(e);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (doCaching && pattern != null && !pattern.isEmpty()) {
+                findings.put(method, Pattern.compile(pattern));
+            }
+        }
+
+        return findings;
+    }
 
     /**
      * Parse Retrofit service interface for Authorization annotations.
@@ -91,7 +137,7 @@ final class AnnotationUtils {
 
         Matcher m = PARAM_URL_REGEX.matcher(url);
         String pattern = "^" + m.replaceAll(".+");
-        Logger.d("Adding auth pattern: \"" + pattern + "\"");
+        Logger.d("Adding pattern: \"" + pattern + "\"");
 
         return pattern;
     }

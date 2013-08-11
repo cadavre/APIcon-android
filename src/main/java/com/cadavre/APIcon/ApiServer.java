@@ -24,7 +24,8 @@ public final class ApiServer {
     private List<Class<?>> serviceInterfaces = new ArrayList<Class<?>>();
     private Map<Class<?>, Object> interfaceToServiceMap = new HashMap<Class<?>, Object>();
 
-    private HashMap<Method, Pattern> endpointsRequiringAuthorization = new HashMap<Method, Pattern>();
+    private HashMap<Method, Pattern> authorizedEndpoints = new HashMap<Method, Pattern>();
+    private HashMap<Method, Pattern> cachedEndpoints = new HashMap<Method, Pattern>();
 
     /**
      * Default constructor.
@@ -76,7 +77,8 @@ public final class ApiServer {
     public ApiServer addServiceInterface(Class<?> serviceInterface) {
 
         // parse custom annotations
-        endpointsRequiringAuthorization = AnnotationUtils.parseServiceInterfaceAuthorization(serviceInterface);
+        authorizedEndpoints = AnnotationUtils.parseServiceInterfaceAuthorization(serviceInterface);
+        cachedEndpoints = AnnotationUtils.parseServiceInterfaceCache(serviceInterface);
 
         // add service to the list
         serviceInterfaces.add(serviceInterface);
@@ -110,9 +112,19 @@ public final class ApiServer {
      *
      * @return HashMap with methods and urls
      */
-    /* package */ HashMap<Method, Pattern> getEndpointsRequiringAuthorization() {
+    /* package */ HashMap<Method, Pattern> getAuthorizedEndpoints() {
 
-        return endpointsRequiringAuthorization;
+        return authorizedEndpoints;
+    }
+
+    /**
+     * Hash map of methods and urls that may be cached.
+     *
+     * @return HashMap with methods and urls
+     */
+    /* package */ HashMap<Method, Pattern> getCachedEndpoints() {
+
+        return cachedEndpoints;
     }
 
     /**
