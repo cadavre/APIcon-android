@@ -1,4 +1,4 @@
-package com.cadavre.APIcon;
+package com.cadavre.APIcon.testy;
 
 import retrofit.client.Header;
 import retrofit.client.Request;
