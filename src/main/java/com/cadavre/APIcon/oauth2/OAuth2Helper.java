@@ -69,10 +69,10 @@ final class OAuth2Helper {
         loadDefaultSharedPrefs();
         SharedPreferences.Editor editor = preferences.edit();
         editor
-            .putString(ACCESS_TOKEN_FIELD, accessToken)
-            .putString(REFRESH_TOKEN_FIELD, refreshToken)
-            .putLong(ACCESS_TOKEN_EXPIRATION_FIELD, accessTokenExpiration)
-            .putLong(REFRESH_TOKEN_EXPIRATION_FIELD, refreshTokenExpiration);
+                .putString(ACCESS_TOKEN_FIELD, accessToken)
+                .putString(REFRESH_TOKEN_FIELD, refreshToken)
+                .putLong(ACCESS_TOKEN_EXPIRATION_FIELD, accessTokenExpiration)
+                .putLong(REFRESH_TOKEN_EXPIRATION_FIELD, refreshTokenExpiration);
 
         return editor.commit();
     }

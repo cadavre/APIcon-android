@@ -39,14 +39,14 @@ public final class ApiServer {
 
         // create Retrofit REST adapter
         this.restAdapter = new RestAdapter.Builder()
-            .setLog(new Logger())
-            .setDebug(BuildConfig.DEBUG)
-            .setServer(baseUrl)
-            .setClient(new RestHttpClient())
-            .setRequestInterceptor(new RestStatelessInterceptor())
-            .setConverter(new RestSymfonyGsonConverter())
-                // .setErrorHandler(new RestErrorHandler()) works only with synchronous Requests
-            .build();
+                .setLog(new Logger())
+                .setDebug(BuildConfig.DEBUG)
+                .setServer(baseUrl)
+                .setClient(new RestHttpClient())
+                .setRequestInterceptor(new RestStatelessInterceptor())
+                .setConverter(new RestSymfonyGsonConverter())
+                        // .setErrorHandler(new RestErrorHandler()) works only with synchronous Requests
+                .build();
     }
 
     public void setAuthorization(ApiServerAuthorization authorization) {

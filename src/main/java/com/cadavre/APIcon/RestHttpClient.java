@@ -54,7 +54,7 @@ class RestHttpClient implements Client {
         // first check if network is available, cache if may
         if (!APIcon.getInstance().getNetworkChecker().isNetworkAvailable()) {
             Collection<Pattern> cacheEndpointPatterns = APIcon.getInstance().
-                getServer().getCachedEndpoints().values();
+                    getServer().getCachedEndpoints().values();
             if (!cacheEndpointPatterns.isEmpty()) {
 
                 RequestRebuilder rebuilder = new RequestRebuilder(request);
@@ -86,7 +86,7 @@ class RestHttpClient implements Client {
 
         // get endpoints that need authorization...
         Collection<Pattern> authEndpointPatterns = APIcon.getInstance().
-            getServer().getAuthorizedEndpoints().values();
+                getServer().getAuthorizedEndpoints().values();
         // ...and if there are some - check for authorization requirement
         if (!authEndpointPatterns.isEmpty()) {
 
@@ -141,8 +141,8 @@ class RestHttpClient implements Client {
 
             // if we got here - either we have valid auth data or fresh, just received auth data
             rebuilder.setHeader(new Header(
-                apiAuthorization.getHeaderName(),
-                apiAuthorization.getHeaderValue())
+                    apiAuthorization.getHeaderName(),
+                    apiAuthorization.getHeaderValue())
             );
             Logger.d("Executing request with authorization:");
             Logger.d(apiAuthorization.getHeaderValue());
@@ -160,7 +160,7 @@ class RestHttpClient implements Client {
         // just for sure
         if (response == null) {
             throw RetrofitError.unexpectedError(request.getUrl(),
-                new NullPointerException("Unknown reason of Response being null."));
+                    new NullPointerException("Unknown reason of Response being null."));
         }
 
         return response;

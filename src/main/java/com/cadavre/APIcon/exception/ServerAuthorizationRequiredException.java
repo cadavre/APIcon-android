@@ -8,6 +8,6 @@ public class ServerAuthorizationRequiredException extends RuntimeException {
     public ServerAuthorizationRequiredException() {
 
         super("Requested API endpoint claims to need authorization but current ApiServer settings cannot fulfill " +
-            "authorization requirements.");
+                "authorization requirements.");
     }
 }

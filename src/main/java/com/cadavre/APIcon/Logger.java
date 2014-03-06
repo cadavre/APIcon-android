@@ -87,7 +87,7 @@ final class Logger implements RestAdapter.Log {
 
         StackTraceElement trace = Thread.currentThread().getStackTrace()[3];
         Log.e(TAG, "Dummy exception " + e.getClass().getCanonicalName() + " in " + trace.getClassName() + " at " +
-            trace.getFileName());
+                trace.getFileName());
     }
 
     /**

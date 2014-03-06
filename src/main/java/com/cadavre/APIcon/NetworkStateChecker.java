@@ -41,12 +41,12 @@ public class NetworkStateChecker {
     public boolean isNetworkAvailable() {
 
         final ConnectivityManager connectivityManager = (ConnectivityManager) context
-            .getSystemService(Context.CONNECTIVITY_SERVICE);
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo[] allNetworkInfos = connectivityManager
-            .getAllNetworkInfo();
+                .getAllNetworkInfo();
         for (final NetworkInfo networkInfo : allNetworkInfos) {
             if (networkInfo.getState() == NetworkInfo.State.CONNECTED
-                || networkInfo.getState() == NetworkInfo.State.CONNECTING) {
+                    || networkInfo.getState() == NetworkInfo.State.CONNECTING) {
                 return true;
             }
         }
@@ -73,11 +73,11 @@ public class NetworkStateChecker {
     private boolean checkHasPermission(final String permissionName) {
 
         final boolean hasPermission = context.getPackageManager()
-            .checkPermission(permissionName, context.getPackageName()) == PackageManager.PERMISSION_GRANTED;
+                .checkPermission(permissionName, context.getPackageName()) == PackageManager.PERMISSION_GRANTED;
         if (!hasPermission) {
             throw new SecurityException(
-                "Application doesn\'t declare <uses-permission android:name=\""
-                    + permissionName + "\" />");
+                    "Application doesn\'t declare <uses-permission android:name=\""
+                            + permissionName + "\" />");
         }
         return true;
     }

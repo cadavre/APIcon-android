@@ -128,7 +128,7 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
             }
         } else if (helper.isAccessTokenExpired()) {
             responseData = getService().getTokensWithRefreshToken(
-                helper.getAppId(), helper.getAppSecret(), helper.getRefreshToken()
+                    helper.getAppId(), helper.getAppSecret(), helper.getRefreshToken()
             );
 
             return helper.setResponseData(responseData);
@@ -137,32 +137,41 @@ public final class OAuth2ServerAuthorization implements ApiServerAuthorization {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Bundle for this authorization must contain two string extras:
+     * - username
+     * - password
+     *
+     * @param params
+     */
     @Override
     public void tryRenewAuthDataWithUserInteraction(Bundle params) {
 
         if (grantType == GRANT_USER_CREDENTIALS) {
             getService().getTokensWithUserCredentials(
-                helper.getAppId(), helper.getAppSecret(),
-                params.getString("username"), params.getString("password"),
-                new Callback<OAuth2ResponseData>() {
+                    helper.getAppId(), helper.getAppSecret(),
+                    params.getString("username"), params.getString("password"),
+                    new Callback<OAuth2ResponseData>() {
 
-                    @Override
-                    public void success(OAuth2ResponseData responseData, Response response) {
+                        @Override
+                        public void success(OAuth2ResponseData responseData, Response response) {
 
-                        helper.setResponseData(responseData);
-                        if (userAuthListener != null) {
-                            userAuthListener.onSuccess();
+                            helper.setResponseData(responseData);
+                            if (userAuthListener != null) {
+                                userAuthListener.onSuccess();
+                            }
+                        }
+
+                        @Override
+                        public void failure(RetrofitError error) {
+
+                            if (userAuthListener != null) {
+                                userAuthListener.onFailure();
+                            }
                         }
                     }
-
-                    @Override
-                    public void failure(RetrofitError error) {
-
-                        if (userAuthListener != null) {
-                            userAuthListener.onFailure();
-                        }
-                    }
-                }
             );
         }
     }

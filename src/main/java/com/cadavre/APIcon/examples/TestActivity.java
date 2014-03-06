@@ -23,9 +23,9 @@ public class TestActivity extends Activity {
         setContentView(R.layout.main);
 
         OAuth2ServerAuthorization serverAuth = new OAuth2ServerAuthorization(
-            getApplicationContext(), "/oauth/v2", OAuth2ServerAuthorization.GRANT_USER_CREDENTIALS,
-            "2_2vg6yqabu7ggwc4oscgswcwwogw0cc08w08k080g0koggsosgg",
-            "1kybihzq182s0c4kc0c8ko44wg4o0w4ocg8cosso0o40gs4cgo"
+                getApplicationContext(), "/oauth/v2", OAuth2ServerAuthorization.GRANT_USER_CREDENTIALS,
+                "2_2vg6yqabu7ggwc4oscgswcwwogw0cc08w08k080g0koggsosgg",
+                "1kybihzq182s0c4kc0c8ko44wg4o0w4ocg8cosso0o40gs4cgo"
         ).setRefreshTokenLifetime(OAuth2ServerAuthorization.DEFAULT_REFRESH_TOKEN_LIFETIME);
 
         serverAuth.setOnUserAuthorizationListener(new TestOnUserAuthListener(this));

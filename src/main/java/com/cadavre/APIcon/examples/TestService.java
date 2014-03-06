@@ -19,22 +19,22 @@ public interface TestService {
     @Authorization
     @GET("/s/game")
     void getGame(
-        Callback<User> cb
+            Callback<User> cb
     );
 
     @Cache
     @Authorization
     @GET("/s/score/{leaderboardId}/{type}")
     void getScore(
-        @Path("leaderboardId") int leaderboardId,
-        @Path("type") String type,
-        Callback<User> cb
+            @Path("leaderboardId") int leaderboardId,
+            @Path("type") String type,
+            Callback<User> cb
     );
 
     @Cache
     @POST("/s/score/add")
     void putScore(
-        @Body int value,
-        Callback<User> cb
+            @Body int value,
+            Callback<User> cb
     );
 }
